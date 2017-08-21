@@ -1,3 +1,7 @@
+#idea
+.idea
+mods/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

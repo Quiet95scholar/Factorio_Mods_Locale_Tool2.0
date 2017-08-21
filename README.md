@@ -1,0 +1,1 @@
+# Factorio_Mods_Locale_Tool2.0

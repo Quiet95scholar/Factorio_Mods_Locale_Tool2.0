@@ -3,12 +3,11 @@ import re
 
 
 class mod(object):
-    def __init__(self, path):
+    def __init__(self, path, from_lang='en', to_lang='zh_cn'):
         self.in_path = path
         self.fname = self.init_fname()
         self.path = self.init_path()
         self.name = self.init_name()
-        self.version = self.init_version()
 
     '''
     获取MOD版本号'''
@@ -74,7 +73,7 @@ class mod(object):
     '''
     获取cfg文件列表'''
 
-    def get_cfg_list(self):
+    def get_cfg_list(self, lang):
         return
 
     '''

@@ -1,7 +1,3 @@
-import os
-import zipfile
-import json
-from modClass import mod
 import json
 import os
 import zipfile
@@ -10,10 +6,12 @@ from modClass import mod
 
 
 class modZip(mod):
-    def __init__(self, path):
+    def __init__(self, path, from_lang='en', to_lang='zh-cn'):
         super().__init__(path)
         self.modZip = zipfile.ZipFile(self.in_path, 'a')
         self.rewrite_dict = {}
+        self.from_cfg_list = self.get_cfg_list(from_lang)
+        self.to_cfg_list = self.get_cfg_list(to_lang)
 
     '''
     获取json文件'''
@@ -25,26 +23,36 @@ class modZip(mod):
     '''
     写入json文件'''
 
-    def set_json(self):
-        content = json.dumps(self.get_json(), indent=4)
+    def set_json(self, content):
+        content = json.dumps(content, indent=4)
         self.rewrite_dict[os.path.splitext(self.fname)[0] + "/info.json"] = content.encode('utf-8')
 
     '''
     获取cfg文件列表'''
 
-    def get_cfg_list(self):
-        return
+    def get_cfg_list(self, lang):
+        list = [];
+        fileList = self.modZip.namelist()
+        dirName = os.path.splitext(self.fname)[0] + "/locale/" + lang
+        for file in fileList:
+            if file[:len(dirName + ".")].upper() == (dirName + ".").upper() or file[:len(dirName + "/")].upper() == (
+                dirName + "/").upper():
+                if os.path.splitext(file)[1] == '.cfg':
+                    list.append(file)
+        return list
 
     '''
     获取cfg文件'''
 
-    def get_cfg(self):
-        return
+    def get_cfg(self, path):
+        content = self.modZip.read(path).decode('utf-8')
+        return content
 
     '''
     写入cfg文件'''
 
-    def set_cfg(self):
+    def set_cfg(self, path, content):
+        self.rewrite_dict[path] = content.encode('utf-8')
         return
 
     '''

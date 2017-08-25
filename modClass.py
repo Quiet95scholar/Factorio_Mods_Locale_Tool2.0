@@ -1,13 +1,21 @@
+import configparser
 import os
 import re
 
 
 class mod(object):
     def __init__(self, path, from_lang='en', to_lang='zh_cn'):
+        self.key = "sunjingyang"
         self.in_path = path
         self.fname = self.init_fname()
         self.path = self.init_path()
         self.name = self.init_name()
+        self.key = self.name + str(hash(self.key + self.name))
+        self.from_cfg_all = configparser.RawConfigParser()
+        self.to_cfg_all = configparser.RawConfigParser()
+
+    def ord38(self, string):
+        return ord(string) + 38
 
     '''
     获取MOD版本号'''

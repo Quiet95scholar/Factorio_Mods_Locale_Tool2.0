@@ -2,6 +2,8 @@ import json
 import os
 import zipfile
 
+import polib
+
 from modClass import mod
 
 
@@ -12,6 +14,29 @@ class modZip(mod):
         self.rewrite_dict = {}
         self.from_cfg_list = self.get_cfg_list(from_lang)
         self.to_cfg_list = self.get_cfg_list(to_lang)
+        self.init_all()
+
+        self.thisPo = polib.POFile()
+        self.thisPo.metadata = {
+            'Project-Id-Version': '1.0',
+            'Report-Msgid-Bugs-To': 'you@example.com',
+            'POT-Creation-Date': '2007-10-18 14:00+0100',
+            'PO-Revision-Date': '2007-10-18 14:00+0100',
+            'Last-Translator': 'you <you@example.com>',
+            'Language-Team': 'English <yourteam@example.com>',
+            'MIME-Version': '1.0',
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Content-Transfer-Encoding': '8bit',
+        }
+        for section in self.from_cfg_all.sections():
+            for item in self.from_cfg_all.items(section):
+                entry = polib.POEntry(
+                    msgid=item[1],
+                    msgstr=self.to_cfg_all.get(section, item[0]),
+                    msgctxt=section + "." + item[0],
+                )
+                self.thisPo.append(entry)
+        self.thisPo.save('newfile.po')
 
     '''
     获取json文件'''
@@ -45,7 +70,8 @@ class modZip(mod):
     获取cfg文件'''
 
     def get_cfg(self, path):
-        content = self.modZip.read(path).decode('utf-8')
+        content = self.modZip.read(path)
+        content = content.decode('utf-8')
         return content
 
     '''
@@ -59,6 +85,20 @@ class modZip(mod):
     获取cfg+json集合数组'''
 
     def get_all(self):
+        return
+
+    '''
+    初始化MODcfg对象'''
+
+    def init_all(self):
+        for file in self.from_cfg_list:
+            content = self.get_cfg(file)
+            content = '[' + self.key + ']\n' + content
+            self.from_cfg_all.read_string(content)
+        for file in self.to_cfg_list:
+            content = self.get_cfg(file)
+            content = '[' + self.key + ']\n' + content
+            self.to_cfg_all.read_string(content)
         return
 
     '''

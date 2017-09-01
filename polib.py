@@ -710,8 +710,17 @@ class POFile(_BaseFile):
         """
         return [e for e in self if e.obsolete]
 
+    def get_entry_by_msgctxt(self, entry_name):
+        for entry in self:
+            if entry == entry_name:
+                return entry
+        return ""
+
     def getv(self):
-        return self.metadata['Project-Id-Version']
+        if 'Project-Id-Version' in self.metadata.keys():
+            return self.metadata['Project-Id-Version']
+        else:
+            return "0"
 
     def merge(self, refpot):
         """
@@ -762,6 +771,8 @@ class POFile(_BaseFile):
         """
 
         # 检查更新po文件的版本号
+        if len(self.metadata) == 0:
+            self.metadata = refpot.metadata
         self_v = self.getv()
         other_V = refpot.getv()
         if self_v < other_V:
@@ -1234,7 +1245,7 @@ class POEntry(_BaseEntry):
         else:
             # 如果原文没变,则后来者居上
             if self.msgid == other.msgid:
-                if other.msgstr != "":
+                if other.msgstr != "" and other.msgstr != other.msgid:
                     self.msgstr = other.msgstr
             else:
                 # 如果原文有变化,则舍弃老版本的字段,更新新版本的字段,当前版本一般不会变化

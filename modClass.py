@@ -64,6 +64,7 @@ class mod(object):
             content = '[' + self.key + ']\n' + content
             self.to_cfg_all.read_string(content)
         json = self.get_json()
+        self.to_cfg_all.read_string('[' + self.key + ']\n')
         if json.__contains__('description_original'):
             self.from_cfg_all.set(self.key, "description", json['description_original'])
             self.to_cfg_all.set(self.key, "description", json['description'])
@@ -83,6 +84,8 @@ class mod(object):
                 try:
                     msgstr = self.to_cfg_all.get(section, item[0])
                 except:
+                    msgstr = ""
+                if item[1] == msgstr:
                     msgstr = ""
                 entry = polib.POEntry(
                     msgctxt=section + "." + item[0],
@@ -186,10 +189,38 @@ class mod(object):
 
     '''汉化文件'''
 
-    def translate(self):
-
-        return
+    def translate(self, po):
+        self.pol = po
+        # self.translate_json()
+        self.translate_cfg()
 
     def translate_json(self):
+        json = self.get_json()
+        title = self.pol.get_entry_by_msgctxt(self.key + ".title")
+        description = self.pol.get_entry_by_msgctxt(self.key + ".description")
+        if title.msgstr != '' and title.msgstr != title.msgid:
+            json['title'] = title.msgstr
+            json['title_original'] = title.msgid
+        else:
+            json['title'] = title.msgid
+        if description.msgstr != '' and description.msgstr != description.msgid:
+            json['description'] = description.msgstr
+            json['description_original'] = description.msgid
+        else:
+            json['description'] = description.msgid
+        self.get_json(json)
 
-        return
+    def translate_cfg(self):
+        for file_name in self.from_cfg_list:
+            content = '[' + self.key + ']\n' + self.get_cfg(file_name)
+            for entry in self.pol:
+                sele = entry.msgctxt.split('.')[0]
+                item = entry.msgctxt.split('.')[1]
+                if entry.msgstr != '':
+                    zz = r"\[" + re.escape(sele) + "\].*?(?=" + re.escape(item + "=" + entry.msgid) + ")"
+                    val_zip = re.search(zz, content, re.DOTALL)
+                    if val_zip:
+                        content = re.sub(r"(?<=" + re.escape(val_zip.group(0)) + ").*",
+                                         item + "=" + repr(entry.msgstr)[1:-1], content)
+            self.set_cfg(re.sub(r"(?<=[\\\/])" + self.from_lang + "(?=[\\\/])", self.to_lang, file_name),
+                         re.sub(r'\[' + self.key + '\]\n', '', content))

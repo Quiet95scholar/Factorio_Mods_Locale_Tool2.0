@@ -29,12 +29,12 @@ class modZip(mod):
     获取cfg文件列表'''
 
     def get_cfg_list(self, lang):
-        list = [];
+        list = []
         fileList = self.modZip.namelist()
         dirName = os.path.splitext(self.fname)[0] + "/locale/" + lang
         for file in fileList:
             if file[:len(dirName + ".")].upper() == (dirName + ".").upper() or file[:len(dirName + "/")].upper() == (
-                dirName + "/").upper():
+                        dirName + "/").upper():
                 if os.path.splitext(file)[1] == '.cfg':
                     list.append(file)
         return list

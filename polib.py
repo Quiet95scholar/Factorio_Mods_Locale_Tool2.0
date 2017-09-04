@@ -712,7 +712,7 @@ class POFile(_BaseFile):
 
     def get_entry_by_msgctxt(self, entry_name):
         for entry in self:
-            if entry == entry_name:
+            if entry.msgctxt == entry_name:
                 return entry
         return ""
 

@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import zipfile
 
 from modClass import mod
@@ -15,8 +16,16 @@ class modZip(mod):
     获取json文件'''
 
     def get_json(self):
-        content = self.modZip.read(os.path.splitext(self.fname)[0] + "/info.json").decode('utf-8')
-        return json.loads(content)
+        read_name = ""
+        fileList = self.modZip.namelist()
+        for file_name in fileList:
+            if file_name[-len("/info.json"):] == "/info.json":
+                if "version" in json.loads(self.modZip.read(file_name).decode('utf-8')).keys():
+                    read_name = file_name
+        content = self.modZip.read(read_name)
+        content = content.decode('utf-8')
+        content = json.loads(content)
+        return content
 
     '''
     写入json文件'''
@@ -33,8 +42,7 @@ class modZip(mod):
         fileList = self.modZip.namelist()
         dirName = os.path.splitext(self.fname)[0] + "/locale/" + lang
         for file in fileList:
-            if file[:len(dirName + ".")].upper() == (dirName + ".").upper() or file[:len(dirName + "/")].upper() == (
-                        dirName + "/").upper():
+            if re.search(r'(.*\/)*\/locale\/' + lang + '\/.*\.[cC][fF][gG]', file):
                 if os.path.splitext(file)[1] == '.cfg':
                     list.append(file)
         return list
@@ -44,7 +52,11 @@ class modZip(mod):
 
     def get_cfg(self, path):
         content = self.modZip.read(path)
-        content = content.decode('utf-8')
+        try:
+            content = content.decode('utf-8')
+        except:
+            error = 1
+            content = ""
         return content
 
     '''

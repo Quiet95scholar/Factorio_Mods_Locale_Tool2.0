@@ -1,9 +1,9 @@
-import configparser
 import hashlib
 import os
 import re
 import time
 
+import myconfigparser
 import polib
 
 
@@ -36,15 +36,15 @@ class mod(object):
         return m.hexdigest()
 
     def init_all(self):
+        self.rewrite_dict = {}
         self.key = "factorio"
         self.fname = self.init_fname()
         self.path = self.init_path()
         self.name = self.init_name()
         self.key = self.name + self.md5hex(self.key + self.name)
         self.version = self.init_version()
-        self.from_cfg_all = configparser.RawConfigParser()
-        self.to_cfg_all = configparser.RawConfigParser()
-        self.rewrite_dict = {}
+        self.from_cfg_all = myconfigparser.RawConfigParser(defaults=None)
+        self.to_cfg_all = myconfigparser.RawConfigParser(defaults=None)
         self.from_cfg_list = self.get_cfg_list(self.from_lang)
         self.to_cfg_list = self.get_cfg_list(self.to_lang)
         self.init_cfg_obj()
@@ -55,26 +55,35 @@ class mod(object):
     初始化MODcfg对象'''
 
     def init_cfg_obj(self):
+        self.from_cfg_all.read_string('[' + self.key + ']\n')
+        self.to_cfg_all.read_string('[' + self.key + ']\n')
         for file in self.from_cfg_list:
             content = self.get_cfg(file)
             content = '[' + self.key + ']\n' + content
-            self.from_cfg_all.read_string(content)
+            try:
+                self.from_cfg_all.read_string(content)
+            except:
+                error = 1
         for file in self.to_cfg_list:
             content = self.get_cfg(file)
             content = '[' + self.key + ']\n' + content
-            self.to_cfg_all.read_string(content)
+            try:
+                self.to_cfg_all.read_string(content)
+            except:
+                error = 1
         json = self.get_json()
-        self.to_cfg_all.read_string('[' + self.key + ']\n')
-        if json.__contains__('description_original'):
-            self.from_cfg_all.set(self.key, "description", json['description_original'])
-            self.to_cfg_all.set(self.key, "description", json['description'])
-        else:
-            self.from_cfg_all.set(self.key, "description", json['description'])
-        if json.__contains__('title_original'):
-            self.from_cfg_all.set(self.key, "title", json['title_original'])
-            self.to_cfg_all.set(self.key, "title", json['title'])
-        else:
-            self.from_cfg_all.set(self.key, "title", json['title'])
+        if json.__contains__('description'):
+            if json.__contains__('description_original'):
+                self.from_cfg_all.set(self.key, "description", json['description_original'])
+                self.to_cfg_all.set(self.key, "description", json['description'])
+            else:
+                self.from_cfg_all.set(self.key, "description", json['description'])
+        if json.__contains__('title'):
+            if json.__contains__('title_original'):
+                self.from_cfg_all.set(self.key, "title", json['title_original'])
+                self.to_cfg_all.set(self.key, "title", json['title'])
+            else:
+                self.from_cfg_all.set(self.key, "title", json['title'])
 
     '''初始化当前对象的po对象'''
 
@@ -87,9 +96,12 @@ class mod(object):
                     msgstr = ""
                 if item[1] == msgstr:
                     msgstr = ""
+                msgid = item[1]
+                if isinstance(msgid, list):
+                    msgid = item[1][0]
                 entry = polib.POEntry(
                     msgctxt=section + "." + item[0],
-                    msgid=item[1],
+                    msgid=msgid,
                     msgstr=msgstr
                 )
                 self.po.append(entry)
@@ -98,7 +110,9 @@ class mod(object):
     获取MOD版本号'''
 
     def init_version(self):
-        return self.get_json()['version']
+        version = self.get_json()
+        version = version['version']
+        return version
 
     '''外部获取MOD版本号'''
 
@@ -191,7 +205,7 @@ class mod(object):
 
     def translate(self, po):
         self.pol = po
-        # self.translate_json()
+        self.translate_json()
         self.translate_cfg()
 
     def translate_json(self):
@@ -208,7 +222,7 @@ class mod(object):
             json['description_original'] = description.msgid
         else:
             json['description'] = description.msgid
-        self.get_json(json)
+        self.set_json(json)
 
     def translate_cfg(self):
         for file_name in self.from_cfg_list:
